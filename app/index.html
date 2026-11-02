@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JobSite CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F9; --card:#FFFFFF; --fg:#0F172A; --muted:#5B6678; --line:#E2E8F0; --soft:#F1F5F9;
+  --side:#111827; --side-fg:#CBD5E1; --side-active:#1F2937;
+  --primary:#D97706; --primary-fg:#111827; --primary-soft:#FEF3C7;
+  --blue:#2563EB; --green:#059669; --green-soft:#D1FAE5; --red:#DC2626; --red-soft:#FEE2E2; --amber-soft:#FEF3C7; --blue-soft:#DBEAFE;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.08);
+  --radius:10px;
+  --font:'Fira Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'Fira Code',ui-monospace,Consolas,monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#0B1120; --card:#111827; --fg:#E5E7EB; --muted:#9AA4B2; --line:#1F2937; --soft:#172033;
+  --side:#070B14; --side-fg:#94A3B8; --side-active:#172033;
+  --primary:#F59E0B; --primary-fg:#111827; --primary-soft:#3B2A0A;
+  --green-soft:#063A2C; --red-soft:#3D1212; --amber-soft:#3B2A0A; --blue-soft:#0F2550;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.app{display:grid;grid-template-columns:220px 1fr;height:100vh}
+/* sidebar */
+.side{background:var(--side);color:var(--side-fg);display:flex;flex-direction:column;padding:16px 10px;gap:4px;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;color:#fff;font-weight:700;font-size:16px}
+.brand .logo{width:32px;height:32px;border-radius:8px;background:var(--primary);display:grid;place-items:center;color:#111827}
+.brand small{display:block;font-weight:400;font-size:11px;color:var(--side-fg)}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;border:0;background:none;color:inherit;text-align:left;width:100%;transition:background .2s}
+.nav:hover{background:var(--side-active);color:#fff}
+.nav.on{background:var(--side-active);color:#fff;box-shadow:inset 3px 0 0 var(--primary)}
+.nav .badge{margin-left:auto;background:var(--red);color:#fff;border-radius:99px;font-size:11px;padding:0 7px;line-height:18px}
+.side .spacer{flex:1}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* main */
+.main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.top{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--card)}
+.top h1{font-size:20px;margin:0;font-weight:600}
+.top .grow{flex:1}
+.search{display:flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:280px}
+.search input{border:0;background:none;outline:none;width:100%}
+.view{flex:1;overflow:auto;padding:20px 24px 40px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 12px;font-weight:500;transition:background .2s,border-color .2s;white-space:nowrap}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-fg)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.danger{color:var(--red)}
+.btn.sm{padding:4px 8px;font-size:13px}
+.btn.icon{padding:6px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card h3{margin:0;font-size:14px;font-weight:600}
+.card .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.card .bd{padding:14px 16px}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{padding:14px 16px}
+.kpi .l{color:var(--muted);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.kpi .v{font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+/* bars */
+.bar{display:grid;grid-template-columns:130px 1fr 90px;gap:10px;align-items:center;padding:5px 0;font-size:13px}
+.bar .track{height:10px;background:var(--soft);border-radius:99px;overflow:hidden}
+.bar .fill{height:100%;background:var(--primary);border-radius:99px}
+.bar .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.cols{display:flex;align-items:flex-end;gap:10px;height:160px;padding-top:10px}
+.cols .c{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.cols .c .b{width:100%;max-width:44px;background:var(--green);border-radius:6px 6px 0 0;min-height:2px}
+.cols .c span{font-size:11px;color:var(--muted)}
+.list .it{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.list .it:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-size:12px}
+.empty{color:var(--muted);text-align:center;padding:24px}
+/* pills */
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.green{background:var(--green-soft);color:var(--green)}
+.pill.red{background:var(--red-soft);color:var(--red)}
+.pill.amber{background:var(--amber-soft);color:var(--primary)}
+.pill.blue{background:var(--blue-soft);color:var(--blue)}
+/* pipeline */
+.board{display:flex;gap:12px;align-items:flex-start;min-height:100%;padding-bottom:12px}
+.col{flex:0 0 250px;background:var(--soft);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;max-height:calc(100vh - 170px)}
+.col .ch{padding:10px 12px;border-bottom:1px solid var(--line)}
+.col .ch b{font-size:13px}
+.col .ch .t{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:2px}
+.col .cb{padding:8px;display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:60px}
+.col.over{outline:2px dashed var(--primary);outline-offset:-2px}
+.jc{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;cursor:grab;box-shadow:var(--shadow);transition:border-color .2s}
+.jc:hover{border-color:var(--primary)}
+.jc .nm{font-weight:600;font-size:13px}
+.jc .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.jc .ft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px}
+.jc .val{font-weight:600;font-variant-numeric:tabular-nums}
+.jc.dragging{opacity:.5}
+.stagebar{height:3px;border-radius:3px;margin:-10px -10px 8px}
+/* tables */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--soft)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+/* forms */
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:500;color:var(--muted)}
+.in{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 10px;width:100%;color:var(--fg)}
+textarea.in{min-height:70px;resize:vertical}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+table .in{padding:5px 7px}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;z-index:20}
+.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(900px,96vw);background:var(--bg);z-index:21;transform:translateX(100%);transition:transform .25s ease,visibility .25s;display:flex;flex-direction:column;visibility:hidden}
+.drawer.on{transform:none;visibility:visible;box-shadow:-8px 0 30px rgba(0,0,0,.2)}
+.dh{padding:16px 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-size:18px}
+.tabs{display:flex;gap:2px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line);overflow:auto}
+.tab{border:0;background:none;padding:10px 12px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--fg);border-bottom-color:var(--primary)}
+.db{flex:1;overflow:auto;padding:18px 20px 40px}
+.stepper{display:flex;gap:4px;margin-top:12px;overflow:auto}
+.step{flex:1;min-width:70px;border:0;padding:6px 4px;font-size:11px;border-radius:6px;background:var(--soft);color:var(--muted);font-weight:500}
+.step.done{background:var(--primary-soft);color:var(--primary)}
+.step.cur{background:var(--primary);color:var(--primary-fg)}
+.sum{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sum .card{padding:12px}
+.sum .l{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600}
+.sum .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+/* modal */
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:30;background:rgba(15,23,42,.5)}
+.modal.on{display:grid}
+.modal .box{background:var(--card);border-radius:12px;width:min(560px,94vw);max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal .mh{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:600;font-size:16px}
+.modal .mb{padding:16px 20px}
+.modal .mf{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.cal .dn{background:var(--soft);padding:6px;font-size:12px;font-weight:600;color:var(--muted);text-align:center}
+.cal .d{background:var(--card);min-height:104px;padding:4px 6px;font-size:12px}
+.cal .d.out{background:var(--soft);color:var(--muted)}
+.cal .d.today .n{background:var(--primary);color:var(--primary-fg);border-radius:99px;padding:0 6px}
+.cal .ev{display:block;margin-top:3px;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;width:100%;text-align:left;background:var(--blue-soft);color:var(--blue)}
+.cal .ev.task{background:var(--amber-soft);color:var(--primary)}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.photos figure{margin:0;position:relative}
+.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+.photos figcaption{font-size:11px;color:var(--muted)}
+.photos .x{position:absolute;top:4px;right:4px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;transition:transform .25s;z-index:40}
+.toast.on{transform:translateX(-50%)}
+.chk{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+.done-t{text-decoration:line-through;color:var(--muted)}
+.note{border-left:3px solid var(--primary);padding:6px 10px;margin-bottom:10px;background:var(--card);border-radius:0 8px 8px 0}
+.note .w{font-size:11px;color:var(--muted)}
+@media (max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{flex-direction:row;padding:6px;overflow-x:auto}.side .brand,.side .spacer{display:none}.nav{width:auto;white-space:nowrap;flex:none}#nav{display:flex;gap:2px}.top h1{display:none}.search{width:auto;flex:1}.sum{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{.side,.top{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M2 20h20M5 20V10l7-6 7 6v10M9 20v-6h6v6"/></svg></div><div><span id="brandName">JobSite CRM</span><small>Construction CRM</small></div></div>
+    <nav id="nav"></nav>
+    <div class="spacer"></div>
+    <button class="nav" id="themeBtn"><svg class="i" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark mode</button>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <h1 id="title">Dashboard</h1>
+      <div class="grow"></div>
+      <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" placeholder="Search jobs, customers, addresses" aria-label="Search"></div>
+      <button class="btn primary" id="newJobBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New lead</button>
+    </div>
+    <section class="view" id="view"></section>
+  </main>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Job details"></aside>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" hidden>
+
+<script>
+'use strict';
+/* ---------- constants ---------- */
+const STAGES=[
+ {id:'lead',name:'New Lead',color:'#64748B'},
+ {id:'contacted',name:'Contacted',color:'#0EA5E9'},
+ {id:'visit',name:'Site Visit',color:'#6366F1'},
+ {id:'estimate',name:'Estimate Sent',color:'#8B5CF6'},
+ {id:'followup',name:'Follow-Up',color:'#EC4899'},
+ {id:'sold',name:'Sold',color:'#059669'},
+ {id:'scheduled',name:'Scheduled',color:'#14B8A6'},
+ {id:'progress',name:'In Progress',color:'#D97706'},
+ {id:'punch',name:'Punch List',color:'#EA580C'},
+ {id:'invoiced',name:'Invoiced',color:'#2563EB'},
+ {id:'paid',name:'Paid / Closed',color:'#16A34A'},
+ {id:'lost',name:'Lost',color:'#DC2626'}
+];
+const SALES=['lead','contacted','visit','estimate','followup'];
+const WON=['sold','scheduled','progress','punch','invoiced','paid'];
+const PRODUCTION=['sold','scheduled','progress','punch'];
+const STALE_DAYS=7;
+const COST_CATS=['Materials','Labor','Subcontractor','Equipment','Permits','Other'];
+const IC={
+ dash:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',
+ pipe:'<path d="M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v6h-4z"/>',
+ jobs:'<path d="M3 7h18v13H3zM8 7V4h8v3"/>',
+ people:'<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-5.5"/>',
+ cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/>',
+ task:'<path d="m9 11 3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+ money:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+ print:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+ phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
+ left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>',
+ alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>'
+};
+const icon=(n,c='')=>`<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const num=v=>{const n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(n)?n:0};
+const money=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString('en-US');
+const money2=n=>(n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const kmoney=n=>Math.abs(n)>=1e6?'$'+(n/1e6).toFixed(1)+'M':Math.abs(n)>=1e4?'$'+Math.round(n/1e3)+'k':money(n);
+const today=()=>new Date().toISOString().slice(0,10);
+const addDays=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const daysBetween=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+const fmtDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+const shortDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+const stage=id=>STAGES.find(s=>s.id===id)||STAGES[0];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
+
+/* ---------- storage ---------- */
+const KEY='jobsite-crm-v1';
+let S;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save: storage full. Export a backup.')}}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}if(!S)S=seed();migrate()}
+function migrate(){S.settings=Object.assign(defaultSettings(),S.settings||{});S.customers??=[];S.jobs??=[];S.tasks??=[];S.jobs.forEach(j=>{j.estimate??={items:[],notes:'',status:'draft'};j.changeOrders??=[];j.invoices??=[];j.costs??=[];j.notes??=[];j.history??=[];j.budget??=0})}
+function defaultSettings(){return{company:'Your Construction Co.',phone:'',email:'',address:'',license:'',taxRate:0,markup:20,terms:'50% deposit due at signing. Balance due on completion. Estimate valid for 30 days.',crews:['Crew A','Crew B','Subcontractor'],sources:['Referral','Google','Website','Facebook','Yard Sign','Repeat Customer','Home Show','Insurance'],types:['Roofing','Remodel','Kitchen','Bathroom','Addition','New Build','Siding','Deck / Patio','Concrete','Commercial','Repair'],nextJob:1001,nextInv:5001,theme:'light',demo:true}}
+
+/* ---------- photo store (IndexedDB) ---------- */
+const PDB={db:null,
+ open(){return this.db?Promise.resolve(this.db):new Promise((res,rej)=>{const r=indexedDB.open('jobsite-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'}).createIndex('job','job');r.onsuccess=()=>{this.db=r.result;res(this.db)};r.onerror=()=>rej(r.error)})},
+ async add(rec){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('p','readwrite');t.objectStore('p').put(rec);t.oncomplete=res;t.onerror=()=>rej(t.error)})},
+ async list(job){const db=await this.open();return new Promise(res=>{const out=[];const r=db.transaction('p').objectStore('p').index('job').openCursor(IDBKeyRange.only(job));r.onsuccess=()=>{const c=r.result;if(c){out.push(c.value);c.continue()}else res(out)}})},
+ async del(id){const db=await this.open();return new Promise(res=>{const t=db.transaction('p','readwrite');t.objectStore('p').delete(id);t.oncomplete=res})},
+ async all(){const db=await this.open();return new Promise(res=>{const r=db.transaction('p').objectStore('p').getAll();r.onsuccess=()=>res(r.result)})},
+ async clear(){const db=await this.open();return new Promise(res=>{const t=db.transaction('p','readwrite');t.objectStore('p').clear();t.oncomplete=res})}
+};
+
+/* ---------- money math ---------- */
+function lineTotal(it){return num(it.qty)*num(it.cost)*(1+num(it.markup)/100)}
+function estSubtotal(j){return j.estimate.items.reduce((a,it)=>a+lineTotal(it),0)}
+function estCost(j){return j.estimate.items.reduce((a,it)=>a+num(it.qty)*num(it.cost),0)}
+function estTax(j){return estSubtotal(j)*num(j.estimate.taxRate??S.settings.taxRate)/100}
+function estTotal(j){return estSubtotal(j)+estTax(j)}
+function coTotal(j){return j.changeOrders.filter(c=>c.status==='approved').reduce((a,c)=>a+num(c.amount),0)}
+function contract(j){return (j.estimate.items.length?estTotal(j):num(j.value))+coTotal(j)}
+function invoiced(j){return j.invoices.reduce((a,i)=>a+num(i.amount),0)}
+function paidOf(inv){return (inv.payments||[]).reduce((a,p)=>a+num(p.amount),0)}
+function paid(j){return j.invoices.reduce((a,i)=>a+paidOf(i),0)}
+function costs(j){return j.costs.reduce((a,c)=>a+num(c.amount),0)}
+function budgetOf(j){return num(j.budget)||estCost(j)}
+function cust(id){return S.customers.find(c=>c.id===id)||{name:'(no customer)'}}
+function daysInStage(j){return daysBetween((j.stageAt||j.created).slice(0,10),today())}
+function isStale(j){return SALES.includes(j.stage)&&daysInStage(j)>=STALE_DAYS}
+function invStatus(inv){const p=paidOf(inv);if(p>=num(inv.amount)-0.005&&num(inv.amount)>0)return['Paid','green'];if(inv.due&&inv.due<today())return['Overdue','red'];if(p>0)return['Partial','amber'];return['Open','blue']}
+
+/* ---------- seed ---------- */
+function seed(){
+ const s={settings:defaultSettings(),customers:[],jobs:[],tasks:[]};
+ const t=today();
+ const cs=[['Maria Gonzalez','(512) 555-0142','maria.g@example.com','1820 Oak Hollow Dr, Austin, TX','Referral'],['Derek Chen','(512) 555-0199','dchen@example.com','44 Ridgeview Ln, Round Rock, TX','Google'],['Hill Country Dental (Dr. Patel)','(512) 555-0110','office@hcdental.example','900 Main St Suite 4, Cedar Park, TX','Website'],['Tom & Amy Brooks','(737) 555-0123','brooks.fam@example.com','7 Lakeside Ct, Lakeway, TX','Yard Sign'],['Jasmine Wright','(512) 555-0177','jwright@example.com','310 Pecan St, Pflugerville, TX','Facebook'],['Robert King','(512) 555-0188','rking@example.com','1550 Mesa Verde, Austin, TX','Insurance'],['Sunset Apartments LLC','(512) 555-0101','pm@sunsetapts.example','2200 Sunset Blvd, Austin, TX','Repeat Customer'],['Linda Park','(737) 555-0155','lpark@example.com','88 Willow Bend, Georgetown, TX','Home Show']];
+ cs.forEach(c=>s.customers.push({id:uid(),name:c[0],phone:c[1],email:c[2],address:c[3],source:c[4],notes:'',created:addDays(t,-60)}));
+ const C=i=>s.customers[i];
+ const mk=(ci,name,type,stg,value,ago,opt={})=>{const j=Object.assign({id:uid(),num:s.settings.nextJob++,name,customerId:C(ci).id,address:C(ci).address,type,stage:stg,value,source:C(ci).source,crew:'',start:'',end:'',created:addDays(t,-ago)+'T09:00',stageAt:addDays(t,-(opt.inStage??Math.min(ago,3)))+'T09:00',estimate:{items:[],notes:'',status:'draft'},changeOrders:[],invoices:[],costs:[],notes:[],history:[],budget:0,lostReason:''},opt);delete j.inStage;s.jobs.push(j);return j};
+ mk(4,'Bathroom refresh','Bathroom','lead',18000,1,{inStage:1});
+ mk(7,'Back deck + pergola','Deck / Patio','lead',24000,2,{inStage:2});
+ mk(1,'Roof inspection - hail','Roofing','contacted',14500,9,{inStage:9});
+ mk(5,'Insurance roof replacement','Roofing','visit',21800,6,{inStage:4,notes:[{date:addDays(t,-4),text:'Adjuster meeting set. Bring drone photos.'}]});
+ const k=mk(0,'Kitchen remodel','Kitchen','estimate',0,14,{inStage:5});
+ k.estimate={status:'sent',notes:'Includes demo, cabinets, quartz counters, backsplash, lighting.',items:[{desc:'Demo + haul away',qty:1,unit:'job',cost:2200,markup:20},{desc:'Shaker cabinets (installed)',qty:24,unit:'lf',cost:420,markup:20},{desc:'Quartz countertops',qty:58,unit:'sf',cost:65,markup:25},{desc:'Tile backsplash',qty:40,unit:'sf',cost:22,markup:25},{desc:'Electrical + under-cabinet lighting',qty:1,unit:'job',cost:2800,markup:20}]};
+ mk(3,'Primary suite addition','Addition','followup',96000,30,{inStage:12});
+ const sold=mk(6,'Building B siding replacement','Siding','sold',58000,40,{inStage:2,crew:'Crew B',start:addDays(t,9),end:addDays(t,24),budget:41000});
+ sold.invoices.push({id:uid(),num:s.settings.nextInv++,date:addDays(t,-2),due:addDays(t,12),amount:29000,desc:'50% deposit',payments:[]});
+ const p=mk(2,'Office tenant improvement','Commercial','progress',72000,55,{inStage:15,crew:'Crew A',start:addDays(t,-15),end:addDays(t,10),budget:52000});
+ p.invoices.push({id:uid(),num:s.settings.nextInv++,date:addDays(t,-15),due:addDays(t,-1),amount:36000,desc:'50% deposit',payments:[{date:addDays(t,-13),amount:36000,method:'Check'}]});
+ p.changeOrders.push({id:uid(),date:addDays(t,-6),desc:'Add 2 data drops + upgraded LVP',amount:3800,status:'approved'});
+ p.costs.push({id:uid(),date:addDays(t,-14),cat:'Materials',desc:'Framing + drywall package',amount:9400},{id:uid(),date:addDays(t,-10),cat:'Subcontractor',desc:'Electrical rough-in',amount:7800},{id:uid(),date:addDays(t,-7),cat:'Labor',desc:'Crew A - 2 weeks',amount:11200});
+ const pl=mk(1,'Garage conversion','Remodel','punch',38500,70,{inStage:3,crew:'Crew A',start:addDays(t,-35),end:addDays(t,-2),budget:27000});
+ pl.invoices.push({id:uid(),num:s.settings.nextInv++,date:addDays(t,-35),due:addDays(t,-21),amount:19250,desc:'Deposit',payments:[{date:addDays(t,-33),amount:19250,method:'ACH'}]});
+ pl.costs.push({id:uid(),date:addDays(t,-30),cat:'Materials',desc:'Materials',amount:11800},{id:uid(),date:addDays(t,-20),cat:'Labor',desc:'Labor',amount:12100});
+ const iv=mk(7,'Front porch rebuild','Deck / Patio','invoiced',16400,50,{inStage:20,crew:'Crew B',start:addDays(t,-40),end:addDays(t,-25),budget:11000});
+ iv.invoices.push({id:uid(),num:s.settings.nextInv++,date:addDays(t,-40),due:addDays(t,-30),amount:8200,desc:'Deposit',payments:[{date:addDays(t,-39),amount:8200,method:'Card'}]},{id:uid(),num:s.settings.nextInv++,date:addDays(t,-22),due:addDays(t,-8),amount:8200,desc:'Final balance',payments:[]});
+ iv.costs.push({id:uid(),date:addDays(t,-35),cat:'Materials',desc:'Lumber + hardware',amount:5200},{id:uid(),date:addDays(t,-30),cat:'Labor',desc:'Crew B',amount:4600});
+ const pd=[[3,'Roof replacement','Roofing',19800,95,14200],[0,'Fence install','Repair',6400,120,4300],[6,'Unit 12 water damage repair','Repair',8900,80,5900],[4,'Interior paint','Remodel',7200,150,4800]];
+ pd.forEach((d,i)=>{const j=mk(d[0],d[1],d[2],'paid',d[3],d[4],{inStage:d[4]-30,crew:i%2?'Crew B':'Crew A',start:addDays(t,-d[4]+10),end:addDays(t,-d[4]+20),budget:d[5]});j.invoices.push({id:uid(),num:s.settings.nextInv++,date:addDays(t,-d[4]+20),due:addDays(t,-d[4]+34),amount:d[3],desc:'Full payment',payments:[{date:addDays(t,-d[4]+28),amount:d[3],method:'Check'}]});j.costs.push({id:uid(),date:addDays(t,-d[4]+15),cat:'Materials',desc:'Materials + labor',amount:d[5]})});
+ mk(5,'Detached garage','New Build','lost',64000,45,{inStage:20,lostReason:'Went with lower bid'});
+ const J=n=>s.jobs.find(j=>j.name===n).id;
+ s.tasks.push({id:uid(),jobId:J('Roof inspection - hail'),title:'Call back to book inspection',due:addDays(t,-2),done:false,who:'Office'},{id:uid(),jobId:J('Kitchen remodel'),title:'Follow up on estimate',due:t,done:false,who:'Sales'},{id:uid(),jobId:J('Building B siding replacement'),title:'Order siding + trim',due:addDays(t,2),done:false,who:'Crew B'},{id:uid(),jobId:J('Office tenant improvement'),title:'Schedule final inspection with city',due:addDays(t,5),done:false,who:'Crew A'},{id:uid(),jobId:J('Garage conversion'),title:'Fix trim + touch-up paint (punch)',due:addDays(t,1),done:false,who:'Crew A'},{id:uid(),jobId:J('Front porch rebuild'),title:'Collect final payment',due:addDays(t,-3),done:false,who:'Office'});
+ return s;
+}
+
+/* ---------- routing ---------- */
+const VIEWS=[['dashboard','Dashboard','dash'],['pipeline','Job Pipeline','pipe'],['jobs','All Jobs','jobs'],['customers','Customers','people'],['schedule','Schedule','cal'],['tasks','Tasks','task'],['money','Invoices & Payments','money'],['settings','Settings','gear']];
+let cur='dashboard', openJob=null, jobTab='overview', calMonth=null, filt={type:'',crew:'',showLost:false};
+function nav(){const od=S.tasks.filter(t=>!t.done&&t.due&&t.due<=today()).length;
+ $('#nav').innerHTML=VIEWS.map(v=>`<button class="nav ${cur===v[0]?'on':''}" data-v="${v[0]}">${icon(v[2])}${v[1]}${v[0]==='tasks'&&od?`<span class="badge">${od}</span>`:''}</button>`).join('');
+ $('#brandName').textContent=S.settings.company&&S.settings.company!=='Your Construction Co.'?S.settings.company:'JobSite CRM';}
+function go(v){cur=v;render()}
+function render(){nav();$('#title').textContent=VIEWS.find(v=>v[0]===cur)[1];const q=$('#q').value.trim().toLowerCase();({dashboard,pipeline,jobs:jobsView,customers,schedule,tasks:tasksView,money:moneyView,settings})[cur](q);if(openJob)renderDrawer()}
+function matchJob(j,q){if(!q)return true;const c=cust(j.customerId);return [j.name,j.address,c.name,c.phone,c.email,j.type,'#'+j.num,j.crew].join(' ').toLowerCase().includes(q)}
+
+/* ---------- dashboard ---------- */
+function dashboard(){
+ const t=today(),ym=t.slice(0,7),yr=t.slice(0,4);
+ const open=S.jobs.filter(j=>SALES.includes(j.stage));
+ const pipeVal=open.reduce((a,j)=>a+contract(j),0);
+ const soldAt=j=>{const h=j.history.find(h=>h.to==='sold');return (h?h.at:j.stageAt||j.created).slice(0,10)};
+ const won=S.jobs.filter(j=>WON.includes(j.stage));
+ const wonMonth=won.filter(j=>soldAt(j)>=addDays(t,-30));
+ const lost=S.jobs.filter(j=>j.stage==='lost');
+ const winRate=won.length+lost.length?Math.round(won.length/(won.length+lost.length)*100):0;
+ const ar=S.jobs.reduce((a,j)=>a+invoiced(j)-paid(j),0);
+ const overdueInv=[];S.jobs.forEach(j=>j.invoices.forEach(i=>{if(invStatus(i)[0]==='Overdue')overdueInv.push([j,i])}));
+ const active=S.jobs.filter(j=>PRODUCTION.includes(j.stage));
+ let collectedYr=0;const months=[];for(let k=5;k>=0;k--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-k);months.push({k:d.toISOString().slice(0,7),l:d.toLocaleDateString('en-US',{month:'short'}),v:0})}
+ S.jobs.forEach(j=>j.invoices.forEach(i=>(i.payments||[]).forEach(p=>{const m=months.find(m=>m.k===p.date.slice(0,7));if(m)m.v+=num(p.amount);if(p.date.startsWith(yr))collectedYr+=num(p.amount)})));
+ const maxM=Math.max(1,...months.map(m=>m.v));
+ const overdueT=S.tasks.filter(x=>!x.done&&x.due&&x.due<t);
+ const stageRows=STAGES.filter(s=>s.id!=='lost'&&s.id!=='paid').map(s=>{const js=S.jobs.filter(j=>j.stage===s.id);return{s,n:js.length,v:js.reduce((a,j)=>a+contract(j),0)}});
+ const maxS=Math.max(1,...stageRows.map(r=>r.v));
+ const src={};S.jobs.forEach(j=>{const k=j.source||'Unknown';src[k]??={leads:0,won:0,val:0};src[k].leads++;if(WON.includes(j.stage)){src[k].won++;src[k].val+=contract(j)}});
+ const srcRows=Object.entries(src).sort((a,b)=>b[1].val-a[1].val);const maxSrc=Math.max(1,...srcRows.map(r=>r[1].val));
+ // attention
+ const att=[];
+ overdueT.forEach(x=>att.push(['red',`Overdue task: ${esc(x.title)}`,x.jobId,`Due ${shortDate(x.due)}`]));
+ overdueInv.forEach(([j,i])=>att.push(['red',`Invoice #${i.num} overdue: ${money(num(i.amount)-paidOf(i))}`,j.id,esc(cust(j.customerId).name)]));
+ S.jobs.filter(isStale).forEach(j=>att.push(['amber',`Stale lead: ${esc(j.name)} (${daysInStage(j)} days in ${stage(j.stage).name})`,j.id,esc(cust(j.customerId).name)]));
+ S.jobs.filter(j=>j.start&&j.start>=t&&j.start<=addDays(t,7)&&j.stage!=='lost').forEach(j=>att.push(['blue',`Starts ${shortDate(j.start)}: ${esc(j.name)}`,j.id,esc(j.crew||'No crew assigned')]));
+ S.jobs.filter(j=>PRODUCTION.includes(j.stage)&&budgetOf(j)>0&&costs(j)>budgetOf(j)).forEach(j=>att.push(['red',`Over budget: ${esc(j.name)} (${money(costs(j)-budgetOf(j))} over)`,j.id,'Job costing']));
+ const prof=S.jobs.filter(j=>WON.includes(j.stage)&&costs(j)>0).map(j=>({j,c:contract(j),k:costs(j)})).map(o=>({...o,m:o.c?(o.c-o.k)/o.c*100:0})).sort((a,b)=>b.j.num-a.j.num).slice(0,6);
+ $('#view').innerHTML=`
+ <div class="kpis">
+  ${kpi('Open pipeline',kmoney(pipeVal),`${open.length} leads & bids`)}
+  ${kpi('Sold (last 30 days)',kmoney(wonMonth.reduce((a,j)=>a+contract(j),0)),`${wonMonth.length} jobs`)}
+  ${kpi('Win rate',winRate+'%',`${won.length} won / ${lost.length} lost`)}
+  ${kpi('Active jobs',active.length,`${S.jobs.filter(j=>j.stage==='scheduled').length} scheduled`)}
+  ${kpi('Owed to you',kmoney(ar),`${overdueInv.length} overdue invoices`)}
+  ${kpi('Collected '+yr,kmoney(collectedYr),'payments received')}
+ </div>
+ <div class="grid2">
+  <div class="card"><div class="hd"><h3>Pipeline by stage</h3><button class="btn sm" data-go="pipeline">Open pipeline</button></div><div class="bd">
+   ${stageRows.map(r=>`<div class="bar"><span><span class="dot" style="display:inline-block;background:${r.s.color};margin-right:6px"></span>${r.s.name} <span class="muted">(${r.n})</span></span><div class="track"><div class="fill" style="width:${r.v/maxS*100}%;background:${r.s.color}"></div></div><span class="n">${kmoney(r.v)}</span></div>`).join('')}
+  </div></div>
+  <div class="card"><div class="hd"><h3>Needs attention</h3><span class="pill ${att.length?'red':'green'}">${att.length}</span></div><div class="bd list" style="max-height:330px;overflow:auto">
+   ${att.length?att.map(a=>`<div class="it click" data-job="${a[2]}" style="cursor:pointer"><span class="dot" style="background:var(--${a[0]==='amber'?'primary':a[0]})"></span><div style="flex:1;min-width:0"><div>${a[1]}</div><div class="muted" style="font-size:12px">${a[3]}</div></div>${icon('right')}</div>`).join(''):'<div class="empty">All clear. Nothing overdue.</div>'}
+  </div></div>
+ </div>
+ <div class="grid3">
+  <div class="card"><div class="hd"><h3>Cash collected (6 months)</h3></div><div class="bd"><div class="cols">${months.map(m=>`<div class="c" title="${money(m.v)}"><span class="mono">${m.v?kmoney(m.v):''}</span><div class="b" style="height:${m.v/maxM*110}px"></div><span>${m.l}</span></div>`).join('')}</div></div></div>
+  <div class="card"><div class="hd"><h3>Lead sources (won $)</h3></div><div class="bd">${srcRows.map(([k,v])=>`<div class="bar" style="grid-template-columns:110px 1fr 110px"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${v.val/maxSrc*100}%;background:var(--green)"></div></div><span class="n">${kmoney(v.val)} · ${v.leads?Math.round(v.won/v.leads*100):0}%</span></div>`).join('')}</div></div>
+  <div class="card"><div class="hd"><h3>Job profit</h3></div><div class="bd" style="padding:0"><table><thead><tr><th>Job</th><th class="num">Contract</th><th class="num">Margin</th></tr></thead><tbody>
+   ${prof.length?prof.map(o=>`<tr class="click" data-job="${o.j.id}"><td>${esc(o.j.name)}<div class="muted" style="font-size:12px">${stage(o.j.stage).name}</div></td><td class="num">${kmoney(o.c)}</td><td class="num"><span class="pill ${o.m<15?'red':o.m<25?'amber':'green'}">${o.m.toFixed(0)}%</span></td></tr>`).join(''):'<tr><td colspan="3" class="empty">Add costs to jobs to see profit.</td></tr>'}
+  </tbody></table></div></div>
+ </div>
+ ${S.settings.demo?`<div class="card" style="margin-top:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b>You are viewing demo data.</b><span class="muted">Explore freely, then clear it to start fresh.</span><span style="flex:1"></span><button class="btn" id="clearDemo">Clear demo data</button></div>`:''}`;
+ const cd=$('#clearDemo');if(cd)cd.onclick=()=>confirmBox('Clear demo data?','This deletes all sample jobs, customers and tasks. Your settings stay.',async()=>{S.jobs=[];S.customers=[];S.tasks=[];S.settings.demo=false;S.settings.nextJob=1001;S.settings.nextInv=5001;await PDB.clear();save();render();toast('Demo data cleared')});
+}
+const kpi=(l,v,s)=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+
+/* ---------- pipeline ---------- */
+function pipeline(q){
+ const sh=STAGES.filter(s=>filt.showLost||s.id!=='lost');
+ const js=S.jobs.filter(j=>matchJob(j,q)&&(!filt.type||j.type===filt.type)&&(!filt.crew||j.crew===filt.crew));
+ $('#view').innerHTML=`<div class="row" style="margin-bottom:12px">
+  <select class="in" style="width:auto" id="fType"><option value="">All job types</option>${S.settings.types.map(t=>`<option ${filt.type===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+  <select class="in" style="width:auto" id="fCrew"><option value="">All crews</option>${S.settings.crews.map(t=>`<option ${filt.crew===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+  <label class="row muted" style="gap:6px"><input type="checkbox" class="chk" id="fLost" ${filt.showLost?'checked':''}> Show lost</label>
+  <span class="muted" style="margin-left:auto;font-size:12px">Drag cards between stages. Orange "days" = no movement in ${STALE_DAYS}+ days.</span></div>
+ <div class="board">${sh.map(s=>{const cj=js.filter(j=>j.stage===s.id);return`<div class="col" data-stage="${s.id}"><div class="ch"><b><span class="dot" style="display:inline-block;background:${s.color};margin-right:6px"></span>${s.name}</b><div class="t"><span>${cj.length} job${cj.length===1?'':'s'}</span><span>${kmoney(cj.reduce((a,j)=>a+contract(j),0))}</span></div></div><div class="cb">${cj.map(cardHTML).join('')||'<div class="muted" style="font-size:12px;text-align:center;padding:10px">Drop here</div>'}</div></div>`}).join('')}</div>`;
+ $('#fType').onchange=e=>{filt.type=e.target.value;render()};$('#fCrew').onchange=e=>{filt.crew=e.target.value;render()};$('#fLost').onchange=e=>{filt.showLost=e.target.checked;render()};
+ document.querySelectorAll('.jc').forEach(c=>{c.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',c.dataset.job);c.classList.add('dragging')});c.addEventListener('dragend',()=>c.classList.remove('dragging'))});
+ document.querySelectorAll('.col').forEach(col=>{col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('over')});col.addEventListener('dragleave',()=>col.classList.remove('over'));col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('over');moveStage(e.dataTransfer.getData('text/plain'),col.dataset.stage)})});
+}
+function cardHTML(j){const s=stage(j.stage),d=daysInStage(j),st=isStale(j);const ot=S.tasks.filter(t=>t.jobId===j.id&&!t.done).length;
+ return`<div class="jc" draggable="true" data-job="${j.id}" tabindex="0" role="button" aria-label="${esc(j.name)}"><div class="stagebar" style="background:${s.color}"></div><div class="nm">${esc(j.name)}</div><div class="meta">${esc(cust(j.customerId).name)}</div><div class="meta">${esc(j.type||'')}${j.crew?' · '+esc(j.crew):''}${j.start?' · '+shortDate(j.start):''}</div><div class="ft"><span class="val">${money(contract(j))}</span><span class="row" style="gap:6px">${ot?`<span class="pill">${ot} task${ot>1?'s':''}</span>`:''}<span class="pill ${st?'amber':''}">${d}d</span></span></div></div>`}
+function moveStage(id,to,silent){const j=S.jobs.find(x=>x.id===id);if(!j||j.stage===to)return;
+ if(to==='lost'&&!silent){promptBox('Mark as lost','Why was this job lost? (helps you improve)','e.g. Price too high',r=>{j.lostReason=r;moveStage(id,to,true)});return}
+ j.history.push({from:j.stage,to,at:new Date().toISOString()});j.stage=to;j.stageAt=new Date().toISOString();
+ if(to==='sold'&&j.estimate.items.length)j.estimate.status='signed';
+ // automation: suggested follow-up tasks
+ const auto={contacted:'Book site visit',visit:'Prepare + send estimate',estimate:'Follow up on estimate (3 days)',sold:'Collect deposit + order materials',scheduled:'Confirm start date with customer',punch:'Walkthrough with customer',invoiced:'Collect final payment'}[to];
+ if(auto&&!S.tasks.some(t=>t.jobId===id&&t.title===auto)){S.tasks.push({id:uid(),jobId:id,title:auto,due:addDays(today(),to==='estimate'?3:1),done:false,who:''})}
+ save();render();toast(`Moved to ${stage(to).name}${auto?' · task added':''}`)}
+
+/* ---------- all jobs ---------- */
+let jobSort={k:'num',d:-1};
+function jobsView(q){
+ let js=S.jobs.filter(j=>matchJob(j,q));
+ const key={num:j=>j.num,name:j=>j.name.toLowerCase(),cust:j=>cust(j.customerId).name.toLowerCase(),stage:j=>STAGES.findIndex(s=>s.id===j.stage),val:contract,bal:j=>invoiced(j)-paid(j),start:j=>j.start||'9'}[jobSort.k];
+ js.sort((a,b)=>(key(a)>key(b)?1:key(a)<key(b)?-1:0)*jobSort.d);
+ const th=(k,l,c='')=>`<th class="${c}" data-sort="${k}" style="cursor:pointer">${l}${jobSort.k===k?(jobSort.d>0?' ▲':' ▼'):''}</th>`;
+ $('#view').innerHTML=`<div class="row" style="margin-bottom:12px"><span class="muted">${js.length} jobs</span><span style="flex:1"></span><button class="btn" id="expJobs">Export CSV</button></div>
+ <div class="card" style="overflow:auto"><table><thead><tr>${th('num','#')}${th('name','Job')}${th('cust','Customer')}${th('stage','Stage')}<th>Type</th><th>Crew</th>${th('start','Start')}${th('val','Contract','num')}${th('bal','Balance due','num')}</tr></thead><tbody>
+ ${js.map(j=>{const s=stage(j.stage);return`<tr class="click" data-job="${j.id}"><td class="mono">${j.num}</td><td><b>${esc(j.name)}</b><div class="muted" style="font-size:12px">${esc(j.address)}</div></td><td>${esc(cust(j.customerId).name)}</td><td><span class="pill" style="background:${s.color}22;color:${s.color}">${s.name}</span></td><td>${esc(j.type)}</td><td>${esc(j.crew)}</td><td>${shortDate(j.start)}</td><td class="num">${money(contract(j))}</td><td class="num">${money(invoiced(j)-paid(j))}</td></tr>`}).join('')||'<tr><td colspan="9" class="empty">No jobs yet. Click "New lead" to add one.</td></tr>'}
+ </tbody></table></div>`;
+ document.querySelectorAll('[data-sort]').forEach(h=>h.onclick=()=>{const k=h.dataset.sort;jobSort=jobSort.k===k?{k,d:-jobSort.d}:{k,d:1};render()});
+ $('#expJobs').onclick=()=>csv('jobs.csv',[['Job #','Job','Customer','Phone','Email','Address','Type','Stage','Source','Crew','Start','End','Contract','Invoiced','Paid','Balance','Costs','Profit','Created'],...S.jobs.map(j=>{const c=cust(j.customerId);return[j.num,j.name,c.name,c.phone,c.email,j.address,j.type,stage(j.stage).name,j.source,j.crew,j.start,j.end,contract(j).toFixed(2),invoiced(j).toFixed(2),paid(j).toFixed(2),(invoiced(j)-paid(j)).toFixed(2),costs(j).toFixed(2),(contract(j)-costs(j)).toFixed(2),j.created.slice(0,10)]})]);
+}
+
+/* ---------- customers ---------- */
+function customers(q){
+ const cs=S.customers.filter(c=>!q||[c.name,c.phone,c.email,c.address].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ $('#view').innerHTML=`<div class="row" style="margin-bottom:12px"><span class="muted">${cs.length} customers</span><span style="flex:1"></span><button class="btn" id="expC">Export CSV</button><button class="btn primary" id="addC">${icon('plus')}Add customer</button></div>
+ <div class="card" style="overflow:auto"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Source</th><th class="num">Jobs</th><th class="num">Lifetime value</th></tr></thead><tbody>
+ ${cs.map(c=>{const js=S.jobs.filter(j=>j.customerId===c.id);return`<tr class="click" data-cust="${c.id}"><td><b>${esc(c.name)}</b></td><td>${c.phone?`<a href="tel:${esc(c.phone)}" onclick="event.stopPropagation()">${esc(c.phone)}</a>`:''}</td><td>${c.email?`<a href="mailto:${esc(c.email)}" onclick="event.stopPropagation()">${esc(c.email)}</a>`:''}</td><td>${esc(c.address)}</td><td>${esc(c.source)}</td><td class="num">${js.length}</td><td class="num">${money(js.filter(j=>WON.includes(j.stage)).reduce((a,j)=>a+contract(j),0))}</td></tr>`}).join('')||'<tr><td colspan="7" class="empty">No customers yet.</td></tr>'}
+ </tbody></table></div>`;
+ $('#addC').onclick=()=>customerForm();
+ $('#expC').onclick=()=>csv('customers.csv',[['Name','Phone','Email','Address','Source','Notes'],...S.customers.map(c=>[c.name,c.phone,c.email,c.address,c.source,c.notes])]);
+}
+function customerForm(c,after){const isNew=!c;c=c||{id:uid(),name:'',phone:'',email:'',address:'',source:'',notes:'',created:today()};
+ const js=isNew?[]:S.jobs.filter(j=>j.customerId===c.id);
+ modal(isNew?'Add customer':esc(c.name),`<div class="form">
+  <label class="f full">Name<input class="in" id="c_name" value="${esc(c.name)}"></label>
+  <label class="f">Phone<input class="in" id="c_phone" value="${esc(c.phone)}"></label>
+  <label class="f">Email<input class="in" id="c_email" value="${esc(c.email)}"></label>
+  <label class="f full">Address<input class="in" id="c_address" value="${esc(c.address)}"></label>
+  <label class="f">Lead source<select class="in" id="c_source"><option></option>${S.settings.sources.map(s=>`<option ${c.source===s?'selected':''}>${esc(s)}</option>`).join('')}</select></label>
+  <label class="f full">Notes<textarea class="in" id="c_notes">${esc(c.notes)}</textarea></label>
+  ${js.length?`<div class="full"><div class="muted" style="font-size:12px;font-weight:600;margin-bottom:6px">JOBS</div>${js.map(j=>`<div class="row" style="justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><a href="#" data-openjob="${j.id}">${esc(j.name)}</a><span class="pill">${stage(j.stage).name}</span><span>${money(contract(j))}</span></div>`).join('')}</div>`:''}
+ </div>`,[
+  !isNew&&{l:'Delete',c:'danger',f:()=>{if(js.length){toast('Delete or reassign this customer\'s jobs first');return false}S.customers=S.customers.filter(x=>x.id!==c.id);save();render()}},
+  !isNew&&{l:'New job for customer',f:()=>{closeModal();jobForm({customerId:c.id});return false}},
+  {l:'Save',c:'primary',f:()=>{const name=$('#c_name').value.trim();if(!name){toast('Name is required');return false}['name','phone','email','address','source','notes'].forEach(k=>c[k]=$('#c_'+k).value.trim());if(isNew)S.customers.push(c);save();render();after&&after(c);toast('Customer saved')}}]);
+ document.querySelectorAll('[data-openjob]').forEach(a=>a.onclick=e=>{e.preventDefault();closeModal();openDrawer(a.dataset.openjob)});
+}
+
+/* ---------- new job ---------- */
+function jobForm(pre={}){
+ modal('New lead / job',`<div class="form">
+  <label class="f full">Customer<select class="in" id="j_cust"><option value="__new">+ New customer</option>${S.customers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}" ${pre.customerId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+  <div class="full form" id="newCustF" style="grid-column:1/-1">
+   <label class="f">Customer name<input class="in" id="nc_name"></label><label class="f">Phone<input class="in" id="nc_phone"></label>
+   <label class="f">Email<input class="in" id="nc_email"></label><label class="f">Lead source<select class="in" id="nc_source"><option></option>${S.settings.sources.map(s=>`<option>${esc(s)}</option>`).join('')}</select></label>
+  </div>
+  <label class="f full">Job name<input class="in" id="j_name" placeholder="e.g. Kitchen remodel"></label>
+  <label class="f full">Job site address<input class="in" id="j_addr" placeholder="Same as customer if blank"></label>
+  <label class="f">Job type<select class="in" id="j_type"><option></option>${S.settings.types.map(t=>`<option>${esc(t)}</option>`).join('')}</select></label>
+  <label class="f">Estimated value ($)<input class="in" id="j_val" inputmode="decimal" placeholder="0"></label>
+  <label class="f">Stage<select class="in" id="j_stage">${STAGES.filter(s=>s.id!=='lost').map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></label>
+  <label class="f">Follow up on<input class="in" type="date" id="j_fu" value="${addDays(today(),1)}"></label>
+  <label class="f full">Notes<textarea class="in" id="j_notes" placeholder="What does the customer want?"></textarea></label>
+ </div>`,[{l:'Create',c:'primary',f:()=>{
+  let cid=$('#j_cust').value;
+  if(cid==='__new'){const n=$('#nc_name').value.trim();if(!n){toast('Enter a customer name');return false}const c={id:uid(),name:n,phone:$('#nc_phone').value.trim(),email:$('#nc_email').value.trim(),address:$('#j_addr').value.trim(),source:$('#nc_source').value,notes:'',created:today()};S.customers.push(c);cid=c.id}
+  const c=cust(cid),name=$('#j_name').value.trim()||(($('#j_type').value||'New')+' job');
+  const st=$('#j_stage').value,now=new Date().toISOString();
+  const j={id:uid(),num:S.settings.nextJob++,name,customerId:cid,address:$('#j_addr').value.trim()||c.address||'',type:$('#j_type').value,stage:st,value:num($('#j_val').value),source:c.source||'',crew:'',start:'',end:'',created:now,stageAt:now,estimate:{items:[],notes:'',status:'draft'},changeOrders:[],invoices:[],costs:[],notes:[],history:[{from:null,to:st,at:now}],budget:0,lostReason:''};
+  const nt=$('#j_notes').value.trim();if(nt)j.notes.push({date:today(),text:nt});
+  S.jobs.push(j);const fu=$('#j_fu').value;if(fu)S.tasks.push({id:uid(),jobId:j.id,title:'Follow up with '+c.name.split(' ')[0],due:fu,done:false,who:''});
+  save();render();openDrawer(j.id);toast('Lead created')}}]);
+ const sync=()=>$('#newCustF').style.display=$('#j_cust').value==='__new'?'grid':'none';$('#j_cust').onchange=sync;sync();
+}
+
+/* ---------- job drawer ---------- */
+function openDrawer(id,tab){openJob=id;jobTab=tab||'overview';$('#drawer').classList.add('on');$('#scrim').classList.add('on');renderDrawer()}
+function closeDrawer(){openJob=null;$('#drawer').classList.remove('on');$('#scrim').classList.remove('on')}
+function renderDrawer(){const j=S.jobs.find(x=>x.id===openJob);if(!j){closeDrawer();return}
+ const c=cust(j.customerId),si=STAGES.findIndex(s=>s.id===j.stage);
+ const tabs=[['overview','Overview'],['estimate','Estimate'],['changes','Change orders'],['invoices','Invoices'],['costs','Job costing'],['tasks','Tasks'],['notes','Notes'],['photos','Photos']];
+ const sc=s=>{const i=STAGES.findIndex(x=>x.id===s.id);return j.stage==='lost'?'':i<si?'done':i===si?'cur':''};
+ $('#drawer').innerHTML=`<div class="dh"><div class="row" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="muted mono">JOB #${j.num} · ${esc(j.type||'')}</div><h2>${esc(j.name)}</h2><div class="muted">${esc(c.name)}${c.phone?' · <a href="tel:'+esc(c.phone)+'">'+esc(c.phone)+'</a>':''}${j.address?' · '+esc(j.address):''}</div></div>
+  ${j.stage==='lost'?`<span class="pill red">Lost${j.lostReason?': '+esc(j.lostReason):''}</span>`:`<button class="btn sm danger" id="markLost">Mark lost</button>`}
+  <button class="btn icon" id="closeD" aria-label="Close">${icon('x')}</button></div>
+  <div class="stepper">${STAGES.filter(s=>s.id!=='lost').map(s=>`<button class="step ${sc(s)}" data-stage="${s.id}" title="Move to ${s.name}">${s.name}</button>`).join('')}</div></div>
+  <div class="tabs">${tabs.map(t=>`<button class="tab ${jobTab===t[0]?'on':''}" data-tab="${t[0]}">${t[1]}</button>`).join('')}</div>
+  <div class="db" id="db"></div>`;
+ $('#closeD').onclick=closeDrawer;const ml=$('#markLost');if(ml)ml.onclick=()=>moveStage(j.id,'lost');
+ document.querySelectorAll('.step').forEach(b=>b.onclick=()=>moveStage(j.id,b.dataset.stage));
+ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{jobTab=b.dataset.tab;renderDrawer()});
+ ({overview:tOverview,estimate:tEstimate,changes:tChanges,invoices:tInvoices,costs:tCosts,tasks:tTasks,notes:tNotes,photos:tPhotos})[jobTab](j);
+}
+function summary(j){const ct=contract(j),k=costs(j);return`<div class="sum">
+ <div class="card"><div class="l">Contract</div><div class="v">${money(ct)}</div></div>
+ <div class="card"><div class="l">Paid</div><div class="v" style="color:var(--green)">${money(paid(j))}</div></div>
+ <div class="card"><div class="l">Balance due</div><div class="v">${money(invoiced(j)-paid(j))}</div><div class="muted" style="font-size:11px">${money(ct-invoiced(j))} not yet invoiced</div></div>
+ <div class="card"><div class="l">Profit so far</div>${k?`<div class="v" style="color:${ct-k<0?'var(--red)':'inherit'}">${money(ct-k)}</div><div class="muted" style="font-size:11px">${ct?((ct-k)/ct*100).toFixed(0):0}% margin</div>`:`<div class="v muted">—</div><div class="muted" style="font-size:11px">${budgetOf(j)?'Est. '+money(ct-budgetOf(j))+' · ':''}no costs logged yet</div>`}</div></div>`}
+function bindFields(j,ids){ids.forEach(([id,key,isNum])=>{const el=$('#'+id);el.onchange=()=>{j[key]=isNum?num(el.value):el.value;if(key==='customerId'){}save();render()}})}
+function tOverview(j){const c=cust(j.customerId);
+ $('#db').innerHTML=summary(j)+`<div class="card"><div class="bd form">
+  <label class="f full">Job name<input class="in" id="o_name" value="${esc(j.name)}"></label>
+  <label class="f">Customer<select class="in" id="o_cust">${S.customers.map(x=>`<option value="${x.id}" ${x.id===j.customerId?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
+  <label class="f">Job type<select class="in" id="o_type"><option></option>${S.settings.types.map(t=>`<option ${j.type===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+  <label class="f full">Job site address<input class="in" id="o_addr" value="${esc(j.address)}"></label>
+  <label class="f">Lead source<select class="in" id="o_src"><option></option>${S.settings.sources.map(t=>`<option ${j.source===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+  <label class="f">${j.estimate.items.length?'Value (from estimate)':'Estimated value ($)'}<input class="in" id="o_val" value="${j.estimate.items.length?money(estTotal(j)):(num(j.value)||'')}" ${j.estimate.items.length?'disabled':''}></label>
+  <label class="f">Crew / sub<select class="in" id="o_crew"><option></option>${S.settings.crews.map(t=>`<option ${j.crew===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+  <label class="f">Cost budget ($)<input class="in" id="o_budget" value="${num(j.budget)||''}" placeholder="${estCost(j)?'From estimate: '+money(estCost(j)):'0'}"></label>
+  <label class="f">Start date<input class="in" type="date" id="o_start" value="${j.start}"></label>
+  <label class="f">End date<input class="in" type="date" id="o_end" value="${j.end}"></label>
+  <label class="f">Permit #<input class="in" id="o_permit" value="${esc(j.permit||'')}"></label>
+  <label class="f">Insurance claim #<input class="in" id="o_claim" value="${esc(j.claim||'')}" placeholder="If insurance job"></label>
+ </div></div>
+ <div class="row" style="margin-top:12px"><button class="btn" id="o_editC">Edit customer</button>${c.address?`<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address||c.address)}">Open in Maps</a>`:''}<span style="flex:1"></span><button class="btn danger" id="o_del">${icon('trash')}Delete job</button></div>
+ <div class="card" style="margin-top:14px"><div class="hd"><h3>Stage history</h3></div><div class="bd list">${j.history.slice().reverse().map(h=>`<div class="it"><span class="dot" style="background:${stage(h.to).color}"></span><span style="flex:1">${h.from?stage(h.from).name+' → ':''}<b>${stage(h.to).name}</b></span><span class="muted">${fmtDate(h.at.slice(0,10))}</span></div>`).join('')||'<div class="muted">Created '+fmtDate(j.created.slice(0,10))+'</div>'}</div></div>`;
+ bindFields(j,[['o_name','name'],['o_cust','customerId'],['o_type','type'],['o_addr','address'],['o_src','source'],['o_val','value',1],['o_crew','crew'],['o_budget','budget',1],['o_start','start'],['o_end','end'],['o_permit','permit'],['o_claim','claim']]);
+ $('#o_editC').onclick=()=>customerForm(cust(j.customerId));
+ $('#o_del').onclick=()=>confirmBox('Delete this job?','This removes the job, its estimate, invoices, costs, tasks and photos.',async()=>{S.jobs=S.jobs.filter(x=>x.id!==j.id);S.tasks=S.tasks.filter(t=>t.jobId!==j.id);(await PDB.list(j.id)).forEach(p=>PDB.del(p.id));closeDrawer();save();render();toast('Job deleted')});
+}
+function tEstimate(j){const e=j.estimate;const tr=e.taxRate??S.settings.taxRate;
+ $('#db').innerHTML=`<div class="row" style="margin-bottom:12px"><span class="pill ${e.status==='signed'?'green':e.status==='sent'?'blue':''}">${e.status==='signed'?'Signed':e.status==='sent'?'Sent':'Draft'}</span><span class="muted" style="font-size:12px">Prices = cost × qty + markup. Customer sees only the price.</span><span style="flex:1"></span>
+  <select class="in" style="width:auto" id="e_status"><option value="draft">Draft</option><option value="sent" ${e.status==='sent'?'selected':''}>Sent</option><option value="signed" ${e.status==='signed'?'selected':''}>Signed</option></select>
+  <button class="btn" id="e_print">${icon('print')}Print / PDF</button></div>
+ <div class="card" style="overflow:auto"><table><thead><tr><th style="min-width:220px">Item</th><th style="width:70px">Qty</th><th style="width:70px">Unit</th><th style="width:100px">Unit cost</th><th style="width:80px">Markup %</th><th class="num" style="width:110px">Price</th><th style="width:40px"></th></tr></thead><tbody>
+ ${e.items.map((it,i)=>`<tr><td><input class="in" data-i="${i}" data-k="desc" value="${esc(it.desc)}"></td><td><input class="in" data-i="${i}" data-k="qty" value="${it.qty}"></td><td><input class="in" data-i="${i}" data-k="unit" value="${esc(it.unit||'')}"></td><td><input class="in" data-i="${i}" data-k="cost" value="${it.cost}"></td><td><input class="in" data-i="${i}" data-k="markup" value="${it.markup}"></td><td class="num">${money2(lineTotal(it))}</td><td><button class="btn icon sm" data-del="${i}" aria-label="Remove line">${icon('trash')}</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">No line items yet.</td></tr>'}
+ </tbody></table><div class="bd row"><button class="btn" id="e_add">${icon('plus')}Add line</button><span style="flex:1"></span>
+  <div style="min-width:260px"><div class="row" style="justify-content:space-between"><span class="muted">Your cost</span><span>${money2(estCost(j))}</span></div>
+  <div class="row" style="justify-content:space-between"><span class="muted">Subtotal</span><span>${money2(estSubtotal(j))}</span></div>
+  <div class="row" style="justify-content:space-between"><span class="muted">Tax <input class="in" id="e_tax" style="width:60px;display:inline-block;padding:2px 6px" value="${tr}">%</span><span>${money2(estTax(j))}</span></div>
+  <div class="row" style="justify-content:space-between;font-size:16px;font-weight:700;border-top:1px solid var(--line);padding-top:6px;margin-top:4px"><span>Total</span><span>${money2(estTotal(j))}</span></div>
+  <div class="row" style="justify-content:space-between"><span class="muted">Gross profit</span><span style="color:var(--green)">${money2(estSubtotal(j)-estCost(j))}</span></div></div></div></div>
+ <label class="f" style="margin-top:12px">Scope / notes shown on estimate<textarea class="in" id="e_notes">${esc(e.notes)}</textarea></label>`;
+ document.querySelectorAll('#db [data-k]').forEach(el=>el.onchange=()=>{const it=e.items[el.dataset.i];it[el.dataset.k]=el.dataset.k==='desc'||el.dataset.k==='unit'?el.value:num(el.value);save();render()});
+ document.querySelectorAll('#db [data-del]').forEach(b=>b.onclick=()=>{e.items.splice(b.dataset.del,1);save();render()});
+ $('#e_add').onclick=()=>{e.items.push({desc:'',qty:1,unit:'ea',cost:0,markup:S.settings.markup});save();render();const ins=document.querySelectorAll('#db [data-k="desc"]');ins[ins.length-1]?.focus()};
+ $('#e_tax').onchange=ev=>{e.taxRate=num(ev.target.value);save();render()};
+ $('#e_notes').onchange=ev=>{e.notes=ev.target.value;save()};
+ $('#e_status').onchange=ev=>{e.status=ev.target.value;if(e.status==='sent'&&SALES.indexOf(j.stage)<SALES.indexOf('estimate')&&SALES.includes(j.stage))moveStage(j.id,'estimate');else if(e.status==='signed'&&SALES.includes(j.stage))moveStage(j.id,'sold');else{save();render()}};
+ $('#e_print').onclick=()=>printDoc(j,'estimate');
+}
+function tChanges(j){
+ $('#db').innerHTML=`<div class="row" style="margin-bottom:12px"><span class="muted">Approved change orders are added to the contract total.</span><span style="flex:1"></span><button class="btn primary" id="co_add">${icon('plus')}Add change order</button></div>
+ <div class="card" style="overflow:auto"><table><thead><tr><th style="width:140px">Date</th><th>Description</th><th style="width:120px">Amount</th><th style="width:130px">Status</th><th style="width:80px"></th></tr></thead><tbody>
+ ${j.changeOrders.map((c,i)=>`<tr><td><input class="in" type="date" data-i="${i}" data-k="date" value="${c.date}"></td><td><input class="in" data-i="${i}" data-k="desc" value="${esc(c.desc)}"></td><td><input class="in" data-i="${i}" data-k="amount" value="${c.amount}"></td><td><select class="in" data-i="${i}" data-k="status">${['pending','approved','rejected'].map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td class="row" style="gap:4px"><button class="btn icon sm" data-print="${i}" aria-label="Print">${icon('print')}</button><button class="btn icon sm" data-del="${i}" aria-label="Delete">${icon('trash')}</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No change orders.</td></tr>'}
+ </tbody></table></div><div style="margin-top:10px" class="muted">Approved total: <b>${money(coTotal(j))}</b></div>`;
+ document.querySelectorAll('#db [data-k]').forEach(el=>el.onchange=()=>{const c=j.changeOrders[el.dataset.i];c[el.dataset.k]=el.dataset.k==='amount'?num(el.value):el.value;save();render()});
+ document.querySelectorAll('#db [data-del]').forEach(b=>b.onclick=()=>{j.changeOrders.splice(b.dataset.del,1);save();render()});
+ document.querySelectorAll('#db [data-print]').forEach(b=>b.onclick=()=>printDoc(j,'co',j.changeOrders[b.dataset.print]));
+ $('#co_add').onclick=()=>{j.changeOrders.push({id:uid(),date:today(),desc:'',amount:0,status:'pending'});save();render()};
+}
+function tInvoices(j){
+ $('#db').innerHTML=summary(j)+`<div class="row" style="margin-bottom:12px"><button class="btn primary" id="iv_add">${icon('plus')}New invoice</button><button class="btn" id="iv_dep">Deposit invoice (50%)</button><button class="btn" id="iv_bal">Invoice remaining balance</button></div>
+ ${j.invoices.map((iv,i)=>{const st=invStatus(iv);return`<div class="card" style="margin-bottom:10px"><div class="hd"><div class="row"><b class="mono">INV #${iv.num}</b><span class="pill ${st[1]}">${st[0]}</span></div><div class="row" style="gap:6px"><button class="btn sm" data-pay="${i}">Record payment</button><button class="btn icon sm" data-print="${i}" aria-label="Print">${icon('print')}</button><button class="btn icon sm" data-del="${i}" aria-label="Delete">${icon('trash')}</button></div></div>
+  <div class="bd form" style="grid-template-columns:2fr 1fr 1fr 1fr"><label class="f">Description<input class="in" data-i="${i}" data-k="desc" value="${esc(iv.desc)}"></label><label class="f">Amount<input class="in" data-i="${i}" data-k="amount" value="${iv.amount}"></label><label class="f">Date<input class="in" type="date" data-i="${i}" data-k="date" value="${iv.date}"></label><label class="f">Due<input class="in" type="date" data-i="${i}" data-k="due" value="${iv.due}"></label></div>
+  ${(iv.payments||[]).length?`<div class="bd" style="padding-top:0">${iv.payments.map((p,pi)=>`<div class="row" style="justify-content:space-between;font-size:13px;border-top:1px solid var(--line);padding:6px 0"><span>${fmtDate(p.date)} · ${esc(p.method)}</span><span class="row"><b style="color:var(--green)">${money2(num(p.amount))}</b><button class="btn icon sm" data-dp="${i}:${pi}" aria-label="Remove payment">${icon('x')}</button></span></div>`).join('')}<div class="row" style="justify-content:flex-end;font-size:13px">Remaining:&nbsp;<b>${money2(num(iv.amount)-paidOf(iv))}</b></div></div>`:''}</div>`}).join('')||'<div class="empty card">No invoices yet.</div>'}`;
+ const newInv=(amount,desc)=>{j.invoices.push({id:uid(),num:S.settings.nextInv++,date:today(),due:addDays(today(),14),amount:Math.round(amount*100)/100,desc,payments:[]});if(!['invoiced','paid'].includes(j.stage)&&desc==='Final balance')moveStage(j.id,'invoiced');else{save();render()}};
+ $('#iv_add').onclick=()=>newInv(0,'Progress payment');
+ $('#iv_dep').onclick=()=>newInv(contract(j)*.5,'50% deposit');
+ $('#iv_bal').onclick=()=>{const r=contract(j)-invoiced(j);if(r<=0){toast('Nothing left to invoice');return}newInv(r,'Final balance')};
+ document.querySelectorAll('#db [data-k]').forEach(el=>el.onchange=()=>{const iv=j.invoices[el.dataset.i];iv[el.dataset.k]=el.dataset.k==='amount'?num(el.value):el.value;save();render()});
+ document.querySelectorAll('#db [data-del]').forEach(b=>b.onclick=()=>confirmBox('Delete invoice?','Payments on it are removed too.',()=>{j.invoices.splice(b.dataset.del,1);save();render()}));
+ document.querySelectorAll('#db [data-print]').forEach(b=>b.onclick=()=>printDoc(j,'invoice',j.invoices[b.dataset.print]));
+ document.querySelectorAll('#db [data-dp]').forEach(b=>b.onclick=()=>{const[a,c]=b.dataset.dp.split(':');j.invoices[a].payments.splice(c,1);save();render()});
+ document.querySelectorAll('#db [data-pay]').forEach(b=>b.onclick=()=>{const iv=j.invoices[b.dataset.pay];
+  modal('Record payment · INV #'+iv.num,`<div class="form"><label class="f">Amount<input class="in" id="p_amt" value="${(num(iv.amount)-paidOf(iv)).toFixed(2)}"></label><label class="f">Date<input class="in" type="date" id="p_date" value="${today()}"></label><label class="f full">Method<select class="in" id="p_m">${['Check','ACH / Bank transfer','Card','Cash','Financing','Insurance check','Other'].map(m=>`<option>${m}</option>`).join('')}</select></label></div>`,[{l:'Save payment',c:'primary',f:()=>{const a=num($('#p_amt').value);if(a<=0){toast('Enter an amount');return false}(iv.payments??=[]).push({date:$('#p_date').value||today(),amount:a,method:$('#p_m').value});
+   const fully=j.invoices.every(x=>paidOf(x)>=num(x.amount)-0.005)&&invoiced(j)>=contract(j)-0.5;
+   if(fully&&j.stage!=='paid'){save();moveStage(j.id,'paid');toast('Paid in full. Job closed.')}else{save();render();toast('Payment recorded')}}}])});
+}
+function tCosts(j){const b=budgetOf(j),k=costs(j),pct=b?Math.min(100,k/b*100):0;
+ const byCat=COST_CATS.map(c=>[c,j.costs.filter(x=>x.cat===c).reduce((a,x)=>a+num(x.amount),0)]).filter(x=>x[1]);
+ $('#db').innerHTML=summary(j)+`<div class="card" style="margin-bottom:12px"><div class="bd"><div class="row" style="justify-content:space-between"><b>Budget vs actual</b><span>${money(k)} of ${money(b)} ${b?`(${(k/b*100).toFixed(0)}%)`:''}</span></div>
+ <div class="track" style="height:12px;background:var(--soft);border-radius:99px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${k>b&&b?'var(--red)':k>b*.9?'var(--primary)':'var(--green)'}"></div></div>
+ ${!b?'<div class="muted" style="font-size:12px;margin-top:6px">Set a cost budget on the Overview tab, or build an estimate (its cost becomes the budget).</div>':''}
+ <div class="row" style="margin-top:10px;gap:16px;font-size:13px">${byCat.map(([c,v])=>`<span><span class="muted">${c}:</span> ${money(v)}</span>`).join('')}</div></div></div>
+ <div class="row" style="margin-bottom:10px"><span style="flex:1"></span><button class="btn primary" id="k_add">${icon('plus')}Add cost</button></div>
+ <div class="card" style="overflow:auto"><table><thead><tr><th style="width:140px">Date</th><th style="width:150px">Category</th><th>Description / vendor</th><th style="width:120px">Amount</th><th style="width:44px"></th></tr></thead><tbody>
+ ${j.costs.map((c,i)=>`<tr><td><input class="in" type="date" data-i="${i}" data-k="date" value="${c.date}"></td><td><select class="in" data-i="${i}" data-k="cat">${COST_CATS.map(x=>`<option ${c.cat===x?'selected':''}>${x}</option>`).join('')}</select></td><td><input class="in" data-i="${i}" data-k="desc" value="${esc(c.desc)}"></td><td><input class="in" data-i="${i}" data-k="amount" value="${c.amount}"></td><td><button class="btn icon sm" data-del="${i}" aria-label="Delete">${icon('trash')}</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No costs logged. Add receipts, labor and sub bills here.</td></tr>'}
+ </tbody></table></div>`;
+ document.querySelectorAll('#db [data-k]').forEach(el=>el.onchange=()=>{const c=j.costs[el.dataset.i];c[el.dataset.k]=el.dataset.k==='amount'?num(el.value):el.value;save();render()});
+ document.querySelectorAll('#db [data-del]').forEach(b=>b.onclick=()=>{j.costs.splice(b.dataset.del,1);save();render()});
+ $('#k_add').onclick=()=>{j.costs.push({id:uid(),date:today(),cat:'Materials',desc:'',amount:0});save();render()};
+}
+function taskRows(ts,showJob){return ts.map(t=>{const j=S.jobs.find(x=>x.id===t.jobId);const od=!t.done&&t.due&&t.due<today();return`<div class="it"><input type="checkbox" class="chk" data-tdone="${t.id}" ${t.done?'checked':''} aria-label="Done"><div style="flex:1;min-width:0"><div class="${t.done?'done-t':''}">${esc(t.title)}</div><div class="muted" style="font-size:12px">${showJob&&j?`<a href="#" data-openjob="${j.id}">${esc(j.name)}</a> · `:''}${t.who?esc(t.who)+' · ':''}${t.due?`<span style="color:${od?'var(--red)':'inherit'}">${od?'Overdue · ':''}${fmtDate(t.due)}</span>`:'No due date'}</div></div><button class="btn icon sm" data-tdel="${t.id}" aria-label="Delete task">${icon('trash')}</button></div>`}).join('')}
+function bindTasks(root){root.querySelectorAll('[data-tdone]').forEach(c=>c.onchange=()=>{const t=S.tasks.find(x=>x.id===c.dataset.tdone);t.done=c.checked;save();render()});root.querySelectorAll('[data-tdel]').forEach(b=>b.onclick=()=>{S.tasks=S.tasks.filter(x=>x.id!==b.dataset.tdel);save();render()});root.querySelectorAll('[data-openjob]').forEach(a=>a.onclick=e=>{e.preventDefault();openDrawer(a.dataset.openjob,'tasks')})}
+function taskAdder(jobId){return`<div class="row" style="margin-bottom:12px"><input class="in" id="t_title" placeholder="Add a task or follow-up..." style="flex:2;min-width:180px">${jobId?'':`<select class="in" id="t_job" style="flex:1;min-width:150px"><option value="">No job</option>${S.jobs.filter(j=>!['paid','lost'].includes(j.stage)).map(j=>`<option value="${j.id}">${esc(j.name)}</option>`).join('')}</select>`}<input class="in" id="t_who" placeholder="Who" style="width:120px"><input class="in" type="date" id="t_due" value="${addDays(today(),1)}" style="width:150px"><button class="btn primary" id="t_add">${icon('plus')}Add</button></div>`}
+function bindAdder(jobId){const add=()=>{const ti=$('#t_title').value.trim();if(!ti)return;S.tasks.push({id:uid(),jobId:jobId||$('#t_job').value,title:ti,due:$('#t_due').value,done:false,who:$('#t_who').value.trim()});save();render();setTimeout(()=>$('#t_title')?.focus(),0)};$('#t_add').onclick=add;$('#t_title').onkeydown=e=>{if(e.key==='Enter')add()}}
+function tTasks(j){const ts=S.tasks.filter(t=>t.jobId===j.id).sort((a,b)=>a.done-b.done||(a.due||'9').localeCompare(b.due||'9'));
+ $('#db').innerHTML=taskAdder(j.id)+`<div class="card"><div class="bd list">${taskRows(ts)||'<div class="empty">No tasks for this job.</div>'}</div></div>`;bindAdder(j.id);bindTasks($('#db'))}
+function tNotes(j){$('#db').innerHTML=`<textarea class="in" id="n_text" placeholder="Log a call, meeting, site note, or customer request..."></textarea><div class="row" style="margin:8px 0 16px"><span style="flex:1"></span><button class="btn primary" id="n_add">Add note</button></div>${j.notes.slice().reverse().map((n,ri)=>`<div class="note"><div class="row" style="justify-content:space-between"><span class="w">${fmtDate(n.date)}</span><button class="btn icon sm" data-del="${j.notes.length-1-ri}" aria-label="Delete note">${icon('x')}</button></div><div style="white-space:pre-wrap">${esc(n.text)}</div></div>`).join('')||'<div class="empty">No notes yet.</div>'}`;
+ $('#n_add').onclick=()=>{const t=$('#n_text').value.trim();if(!t)return;j.notes.push({date:today(),text:t});save();render()};
+ document.querySelectorAll('#db [data-del]').forEach(b=>b.onclick=()=>{j.notes.splice(b.dataset.del,1);save();render()})}
+async function tPhotos(j){$('#db').innerHTML=`<div class="row" style="margin-bottom:12px"><span class="muted">Before / during / after photos. Stored on this computer.</span><span style="flex:1"></span><button class="btn primary" id="ph_add">${icon('plus')}Add photos</button></div><div class="photos" id="phs"><div class="muted">Loading...</div></div>`;
+ $('#ph_add').onclick=()=>{const f=$('#fileIn');f.accept='image/*';f.multiple=true;f.onchange=async()=>{for(const file of f.files){const data=await shrink(file);await PDB.add({id:uid(),job:j.id,data,name:file.name,date:today()})}f.value='';toast('Photos added');if(openJob===j.id&&jobTab==='photos')tPhotos(j)};f.click()};
+ let ps=[];try{ps=await PDB.list(j.id)}catch(e){}
+ if(openJob!==j.id||jobTab!=='photos')return;
+ $('#phs').innerHTML=ps.map(p=>`<figure><img src="${p.data}" alt="${esc(p.name)}" data-full="${p.id}"><figcaption>${fmtDate(p.date)}</figcaption><button class="btn icon sm x" data-pdel="${p.id}" aria-label="Delete photo">${icon('trash')}</button></figure>`).join('')||'<div class="empty" style="grid-column:1/-1">No photos yet.</div>';
+ document.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=async()=>{await PDB.del(b.dataset.pdel);tPhotos(j)});
+ document.querySelectorAll('[data-full]').forEach(im=>im.onclick=()=>{const w=window.open('');if(w){w.document.write(`<title>Photo</title><body style="margin:0;background:#000;display:grid;place-items:center;height:100vh"><img src="${im.src}" style="max-width:100%;max-height:100%"></body>`)}})}
+function shrink(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const m=1400,sc=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};img.onerror=()=>res(r.result);img.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- schedule ---------- */
+function schedule(q){if(!calMonth)calMonth=today().slice(0,7);
+ const [y,m]=calMonth.split('-').map(Number);const first=new Date(y,m-1,1);const start=new Date(first);start.setDate(1-first.getDay());
+ const days=[];for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(d.toISOString().slice(0,10))}
+ const js=S.jobs.filter(j=>j.start&&j.stage!=='lost'&&matchJob(j,q)&&(!filt.crew||j.crew===filt.crew));
+ const ts=S.tasks.filter(t=>!t.done&&t.due);
+ const crewColors=['#2563EB','#059669','#7C3AED','#DB2777','#EA580C','#0891B2'];const cc=c=>crewColors[Math.max(0,S.settings.crews.indexOf(c))%crewColors.length];
+ const t=today();
+ $('#view').innerHTML=`<div class="row" style="margin-bottom:12px"><button class="btn icon" id="cPrev" aria-label="Previous month">${icon('left')}</button><b style="font-size:16px;min-width:150px;text-align:center">${first.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</b><button class="btn icon" id="cNext" aria-label="Next month">${icon('right')}</button><button class="btn" id="cToday">Today</button>
+ <select class="in" style="width:auto" id="cCrew"><option value="">All crews</option>${S.settings.crews.map(c=>`<option ${filt.crew===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+ <span style="flex:1"></span>${S.settings.crews.map(c=>`<span class="row" style="gap:4px;font-size:12px"><span class="dot" style="background:${cc(c)}"></span>${esc(c)}</span>`).join('')}<span class="row" style="gap:4px;font-size:12px"><span class="dot" style="background:var(--primary)"></span>Task</span></div>
+ <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dn">${d}</div>`).join('')}${days.map(d=>{const ev=js.filter(j=>d>=j.start&&d<=(j.end||j.start));const tk=ts.filter(x=>x.due===d);return`<div class="d ${d.slice(0,7)!==calMonth?'out':''} ${d===t?'today':''}"><span class="n">${+d.slice(8)}</span>${ev.map(j=>`<button class="ev" data-job="${j.id}" style="background:${cc(j.crew)}22;color:${cc(j.crew)}" title="${esc(j.name)} · ${esc(j.crew||'No crew')}">${d===j.start?'▸ ':''}${esc(j.name)}</button>`).join('')}${tk.map(x=>`<button class="ev task" data-job="${x.jobId}" title="${esc(x.title)}">✓ ${esc(x.title)}</button>`).join('')}</div>`}).join('')}</div>
+ <div class="muted" style="margin-top:10px;font-size:12px">Jobs show here once they have a start date (set it on the job's Overview tab).</div>`;
+ const shift=n=>{const d=new Date(y,m-1+n,1);calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');render()};
+ $('#cPrev').onclick=()=>shift(-1);$('#cNext').onclick=()=>shift(1);$('#cToday').onclick=()=>{calMonth=today().slice(0,7);render()};$('#cCrew').onchange=e=>{filt.crew=e.target.value;render()};
+}
+
+/* ---------- tasks view ---------- */
+let taskFilter='open';
+function tasksView(q){const t=today();let ts=S.tasks.filter(x=>{const j=S.jobs.find(y=>y.id===x.jobId);return !q||(x.title+' '+(j?j.name:'')+' '+(x.who||'')).toLowerCase().includes(q)});
+ const groups=taskFilter==='done'?[['Completed',ts.filter(x=>x.done)]]:[['Overdue',ts.filter(x=>!x.done&&x.due&&x.due<t)],['Today',ts.filter(x=>!x.done&&x.due===t)],['Upcoming',ts.filter(x=>!x.done&&x.due>t)],['No due date',ts.filter(x=>!x.done&&!x.due)]];
+ $('#view').innerHTML=taskAdder()+`<div class="row" style="margin-bottom:12px"><button class="btn sm ${taskFilter==='open'?'primary':''}" data-tf="open">Open</button><button class="btn sm ${taskFilter==='done'?'primary':''}" data-tf="done">Completed</button></div>
+ ${groups.filter(g=>g[1].length).map(g=>`<div class="card" style="margin-bottom:12px"><div class="hd"><h3 style="${g[0]==='Overdue'?'color:var(--red)':''}">${g[0]}</h3><span class="pill">${g[1].length}</span></div><div class="bd list">${taskRows(g[1].sort((a,b)=>(a.due||'').localeCompare(b.due||'')),true)}</div></div>`).join('')||'<div class="empty card">Nothing here. Nice work.</div>'}`;
+ bindAdder();bindTasks($('#view'));document.querySelectorAll('[data-tf]').forEach(b=>b.onclick=()=>{taskFilter=b.dataset.tf;render()})}
+
+/* ---------- money view ---------- */
+function moneyView(q){const rows=[];S.jobs.forEach(j=>j.invoices.forEach(i=>rows.push({j,i,st:invStatus(i),bal:num(i.amount)-paidOf(i)})));
+ const f=rows.filter(r=>matchJob(r.j,q)).sort((a,b)=>(b.i.date||'').localeCompare(a.i.date||''));
+ const tot=k=>rows.filter(r=>r.st[0]===k).reduce((a,r)=>a+r.bal,0);
+ const pays=[];S.jobs.forEach(j=>j.invoices.forEach(i=>(i.payments||[]).forEach(p=>pays.push({j,i,p}))));pays.sort((a,b)=>b.p.date.localeCompare(a.p.date));
+ const aging=[[0,30],[31,60],[61,90],[91,99999]].map(([a,b])=>rows.filter(r=>r.bal>0.005&&r.i.due&&r.i.due<today()&&daysBetween(r.i.due,today())>=a&&daysBetween(r.i.due,today())<=b).reduce((s,r)=>s+r.bal,0));
+ $('#view').innerHTML=`<div class="kpis" style="grid-template-columns:repeat(4,1fr)">${kpi('Open (not due)',kmoney(tot('Open')+tot('Partial')),'awaiting payment')}${kpi('Overdue',kmoney(tot('Overdue')),`${rows.filter(r=>r.st[0]==='Overdue').length} invoices`)}${kpi('Collected this month',kmoney(pays.filter(x=>x.p.date.startsWith(today().slice(0,7))).reduce((a,x)=>a+num(x.p.amount),0)),'payments')}${kpi('Overdue aging','',`1-30: ${kmoney(aging[0])} · 31-60: ${kmoney(aging[1])} · 61-90: ${kmoney(aging[2])} · 90+: ${kmoney(aging[3])}`)}</div>
+ <div class="grid2"><div class="card" style="overflow:auto"><div class="hd"><h3>Invoices</h3><button class="btn sm" id="expI">Export CSV</button></div><table><thead><tr><th>#</th><th>Job / customer</th><th>Date</th><th>Due</th><th>Status</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>
+ ${f.map(r=>`<tr class="click" data-job="${r.j.id}" data-tab="invoices"><td class="mono">${r.i.num}</td><td>${esc(r.j.name)}<div class="muted" style="font-size:12px">${esc(cust(r.j.customerId).name)}</div></td><td>${shortDate(r.i.date)}</td><td>${shortDate(r.i.due)}</td><td><span class="pill ${r.st[1]}">${r.st[0]}</span></td><td class="num">${money(num(r.i.amount))}</td><td class="num">${money(r.bal)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No invoices yet. Create them from a job\'s Invoices tab.</td></tr>'}
+ </tbody></table></div>
+ <div class="card"><div class="hd"><h3>Recent payments</h3></div><div class="bd list">${pays.slice(0,12).map(x=>`<div class="it click" data-job="${x.j.id}" data-tab="invoices" style="cursor:pointer"><div style="flex:1"><div>${esc(x.j.name)}</div><div class="muted" style="font-size:12px">${fmtDate(x.p.date)} · ${esc(x.p.method)} · INV #${x.i.num}</div></div><b style="color:var(--green)">${money(num(x.p.amount))}</b></div>`).join('')||'<div class="empty">No payments yet.</div>'}</div></div></div>`;
+ $('#expI').onclick=()=>csv('invoices.csv',[['Invoice #','Job #','Job','Customer','Description','Date','Due','Amount','Paid','Balance','Status'],...rows.map(r=>[r.i.num,r.j.num,r.j.name,cust(r.j.customerId).name,r.i.desc,r.i.date,r.i.due,num(r.i.amount).toFixed(2),paidOf(r.i).toFixed(2),r.bal.toFixed(2),r.st[0]])]);
+}
+
+/* ---------- settings ---------- */
+function settings(){const s=S.settings;
+ const listEd=(k,l)=>`<label class="f">${l} <span class="muted">(one per line)</span><textarea class="in" id="s_${k}" style="min-height:140px">${esc(s[k].join('\n'))}</textarea></label>`;
+ $('#view').innerHTML=`<div class="grid2" style="grid-template-columns:1fr 1fr">
+ <div class="card"><div class="hd"><h3>Company (shown on estimates & invoices)</h3></div><div class="bd form">
+  <label class="f full">Company name<input class="in" id="s_company" value="${esc(s.company)}"></label>
+  <label class="f">Phone<input class="in" id="s_phone" value="${esc(s.phone)}"></label><label class="f">Email<input class="in" id="s_email" value="${esc(s.email)}"></label>
+  <label class="f full">Address<input class="in" id="s_address" value="${esc(s.address)}"></label>
+  <label class="f">License #<input class="in" id="s_license" value="${esc(s.license)}"></label><label class="f">Default tax %<input class="in" id="s_taxRate" value="${s.taxRate}"></label>
+  <label class="f">Default markup %<input class="in" id="s_markup" value="${s.markup}"></label><span></span>
+  <label class="f full">Terms on estimates<textarea class="in" id="s_terms">${esc(s.terms)}</textarea></label>
+ </div></div>
+ <div class="card"><div class="hd"><h3>Lists</h3></div><div class="bd form">${listEd('crews','Crews & subs')}${listEd('sources','Lead sources')}<div class="full">${listEd('types','Job types')}</div></div></div></div>
+ <div class="card"><div class="hd"><h3>Backup & data</h3></div><div class="bd row">
+  <button class="btn" id="bk">Download backup</button><button class="btn" id="rs">Restore from backup</button><button class="btn danger" id="wipe">Erase everything</button>
+  <span class="muted" style="font-size:12px">Data lives only on this computer. Download a backup weekly and keep it somewhere safe (e.g. OneDrive).</span></div></div>`;
+ ['company','phone','email','address','license','terms'].forEach(k=>$('#s_'+k).onchange=e=>{s[k]=e.target.value.trim();save();nav()});
+ ['taxRate','markup'].forEach(k=>$('#s_'+k).onchange=e=>{s[k]=num(e.target.value);save()});
+ ['crews','sources','types'].forEach(k=>$('#s_'+k).onchange=e=>{s[k]=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);save()});
+ $('#bk').onclick=async()=>{let photos=[];try{photos=await PDB.all()}catch(e){}download(`jobsite-crm-backup-${today()}.json`,JSON.stringify({app:'jobsite-crm',v:1,data:S,photos}),'application/json');toast('Backup downloaded')};
+ $('#rs').onclick=()=>{const f=$('#fileIn');f.accept='.json,application/json';f.multiple=false;f.onchange=()=>{const file=f.files[0];f.value='';if(!file)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(o.app!=='jobsite-crm'||!o.data)throw 0;confirmBox('Restore backup?','This replaces all current data with the backup.',async()=>{S=o.data;migrate();await PDB.clear();for(const p of o.photos||[])await PDB.add(p);save();render();toast('Backup restored')})}catch(e){toast('That file is not a JobSite CRM backup')}};r.readAsText(file)};f.click()};
+ $('#wipe').onclick=()=>confirmBox('Erase everything?','All jobs, customers, tasks, invoices, photos and settings will be deleted. Download a backup first.',async()=>{localStorage.removeItem(KEY);await PDB.clear();S={settings:Object.assign(defaultSettings(),{demo:false}),customers:[],jobs:[],tasks:[]};save();render();toast('All data erased')});
+}
+
+/* ---------- print docs ---------- */
+function printDoc(j,kind,obj){const s=S.settings,c=cust(j.customerId);const w=window.open('','_blank');if(!w){toast('Allow pop-ups to print');return}
+ let title,body,total;
+ if(kind==='estimate'){title='Estimate';const e=j.estimate;total=estTotal(j);
+  body=`<table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody>${e.items.map(it=>{const p=lineTotal(it);return`<tr><td>${esc(it.desc)}</td><td class="r">${it.qty} ${esc(it.unit||'')}</td><td class="r">${money2(num(it.qty)?p/num(it.qty):0)}</td><td class="r">${money2(p)}</td></tr>`}).join('')}</tbody></table>
+  <div class="tot"><div><span>Subtotal</span><span>${money2(estSubtotal(j))}</span></div>${estTax(j)?`<div><span>Tax (${e.taxRate??s.taxRate}%)</span><span>${money2(estTax(j))}</span></div>`:''}<div class="g"><span>Total</span><span>${money2(total)}</span></div></div>
+  ${e.notes?`<h4>Scope of work</h4><p style="white-space:pre-wrap">${esc(e.notes)}</p>`:''}${s.terms?`<h4>Terms</h4><p style="white-space:pre-wrap">${esc(s.terms)}</p>`:''}
+  <div class="sig"><div>Customer signature</div><div>Date</div></div>`}
+ else if(kind==='invoice'){title='Invoice #'+obj.num;const p=paidOf(obj);
+  body=`<p><b>Invoice date:</b> ${fmtDate(obj.date)} &nbsp; <b>Due:</b> ${fmtDate(obj.due)}</p><table><thead><tr><th>Description</th><th class="r">Amount</th></tr></thead><tbody><tr><td>${esc(obj.desc||j.name)}</td><td class="r">${money2(num(obj.amount))}</td></tr></tbody></table>
+  <div class="tot"><div><span>Contract total</span><span>${money2(contract(j))}</span></div><div><span>This invoice</span><span>${money2(num(obj.amount))}</span></div><div><span>Paid on this invoice</span><span>${money2(p)}</span></div><div class="g"><span>Amount due</span><span>${money2(num(obj.amount)-p)}</span></div></div>`}
+ else{title='Change Order';body=`<p><b>Date:</b> ${fmtDate(obj.date)}</p><table><thead><tr><th>Change</th><th class="r">Amount</th></tr></thead><tbody><tr><td>${esc(obj.desc)}</td><td class="r">${money2(num(obj.amount))}</td></tr></tbody></table><div class="tot"><div><span>Original contract</span><span>${money2(contract(j)-coTotal(j))}</span></div><div class="g"><span>This change</span><span>${money2(num(obj.amount))}</span></div></div><p>By signing, the customer approves this change to the scope and price.</p><div class="sig"><div>Customer signature</div><div>Date</div></div>`}
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)} - ${esc(j.name)}</title><style>body{font:14px/1.5 'Segoe UI',system-ui,sans-serif;color:#111;max-width:760px;margin:40px auto;padding:0 24px}header{display:flex;justify-content:space-between;border-bottom:3px solid #D97706;padding-bottom:14px;margin-bottom:20px}h1{margin:0;font-size:22px}h2{margin:0;font-size:26px;color:#D97706;text-align:right}.m{color:#555;font-size:13px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}th{background:#f4f4f5;font-size:12px;text-transform:uppercase}.r{text-align:right}.tot{margin-left:auto;width:300px}.tot div{display:flex;justify-content:space-between;padding:4px 0}.tot .g{font-weight:700;font-size:17px;border-top:2px solid #111;margin-top:4px;padding-top:8px}.cols{display:flex;gap:40px}.sig{display:flex;gap:40px;margin-top:50px}.sig div{flex:1;border-top:1px solid #111;padding-top:4px;font-size:12px;color:#555}h4{margin:24px 0 4px}@media print{body{margin:0}}</style></head><body>
+ <header><div><h1>${esc(s.company)}</h1><div class="m">${esc(s.address)}<br>${esc(s.phone)} ${s.email?' · '+esc(s.email):''}${s.license?'<br>License #'+esc(s.license):''}</div></div><div><h2>${esc(title)}</h2><div class="m" style="text-align:right">Job #${j.num}<br>${fmtDate(today())}</div></div></header>
+ <div class="cols"><div><b>Prepared for</b><br>${esc(c.name)}<br><span class="m">${esc(c.address||'')}<br>${esc(c.phone||'')} ${c.email?' · '+esc(c.email):''}</span></div><div><b>Job site</b><br>${esc(j.name)}<br><span class="m">${esc(j.address)}</span></div></div>
+ ${body}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close()}
+
+/* ---------- modal + utils ---------- */
+function modal(title,html,btns){$('#modalBox').innerHTML=`<div class="mh">${title}</div><div class="mb">${html}</div><div class="mf">${btns.filter(Boolean).map((b,i)=>`<button class="btn ${b.c||''}" data-mb="${i}">${b.l}</button>`).join('')}<button class="btn" data-close>Cancel</button></div>`;
+ const bs=btns.filter(Boolean);document.querySelectorAll('[data-mb]').forEach(el=>el.onclick=()=>{if(bs[el.dataset.mb].f()!==false)closeModal()});$('[data-close]').onclick=closeModal;$('#modal').classList.add('on');setTimeout(()=>$('#modalBox input:not([type=hidden]),#modalBox select')?.focus(),30)}
+function closeModal(){$('#modal').classList.remove('on')}
+function confirmBox(t,msg,ok){modal(esc(t),`<p style="margin:0">${esc(msg)}</p>`,[{l:'Yes, continue',c:'primary',f:()=>{ok()}}])}
+function promptBox(t,msg,ph,ok){modal(esc(t),`<label class="f">${esc(msg)}<input class="in" id="pb_in" placeholder="${esc(ph)}"></label>`,[{l:'Save',c:'primary',f:()=>{ok($('#pb_in').value.trim())}}])}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csv(name,rows){download(name,'﻿'+rows.map(r=>r.map(v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')).join('\r\n'),'text/csv');toast('Exported '+name)}
+function applyTheme(){document.documentElement.dataset.theme=S.settings.theme;$('#themeBtn').lastChild.textContent=S.settings.theme==='dark'?'Light mode':'Dark mode'}
+
+/* ---------- global events ---------- */
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return}
+ const n=e.target.closest('.nav[data-v]');if(n){go(n.dataset.v);return}
+ if(e.target.closest('#drawer,#modal'))return;
+ const jb=e.target.closest('[data-job]');if(jb&&jb.dataset.job){openDrawer(jb.dataset.job,jb.dataset.tab);return}
+ const cu=e.target.closest('[data-cust]');if(cu){customerForm(S.customers.find(c=>c.id===cu.dataset.cust))}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal').classList.contains('on'))closeModal();else if(openJob)closeDrawer()}
+ if(e.key==='Enter'&&e.target.classList?.contains('jc'))openDrawer(e.target.dataset.job);
+ if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#q').focus()}});
+$('#scrim').onclick=closeDrawer;
+$('#q').oninput=()=>{if(cur==='dashboard'||cur==='settings')cur='jobs';render()};
+$('#newJobBtn').onclick=()=>jobForm();
+$('#themeBtn').onclick=()=>{S.settings.theme=S.settings.theme==='dark'?'light':'dark';save();applyTheme()};
+window.addEventListener('storage',e=>{if(e.key===KEY){load();render()}});
+
+load();applyTheme();render();
+</script>
+<!--JRT-UPDATE:START (managed by shared/jrt-update; release.ps1 bumps the build number) -->
+<div id="jrt-update" role="status" aria-live="polite" hidden>
+  <span id="jrt-update-msg">A new version is ready.</span>
+  <button type="button" id="jrt-update-go">Update now</button>
+  <button type="button" id="jrt-update-later" aria-label="Later">Later</button>
+</div>
+<style>
+  #jrt-update{position:fixed;z-index:2147483000;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+    display:flex;align-items:center;gap:10px;max-width:min(440px,calc(100vw - 32px));padding:10px 10px 10px 16px;border-radius:14px;
+    background:#16130f;color:#f6f1ea;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.35);
+    font:500 14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;transform:translateY(0);opacity:1;transition:transform .22s ease,opacity .22s ease}
+  #jrt-update[hidden]{display:none}
+  #jrt-update.jrt-enter{transform:translateY(12px);opacity:0}
+  #jrt-update-msg{flex:1;min-width:0}
+  #jrt-update button{min-height:44px;padding:0 14px;border-radius:10px;border:0;cursor:pointer;font:inherit;font-weight:600}
+  #jrt-update-go{background:#f08a3c;color:#1a0f05}
+  #jrt-update-go:disabled{opacity:.6;cursor:progress}
+  #jrt-update-later{background:transparent;color:#cfc6ba}
+  #jrt-update button:focus-visible{outline:2px solid #f6f1ea;outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){#jrt-update{transition:none}}
+</style>
+<script>
+(function () {
+  var APP = 'jobsite-crm', BUILD = 1 /*@JRT_BUILD@*/;
+  var VERSION_URL = 'https://raw.githubusercontent.com/Jrtorres13/' + APP + '/main/version.json';
+  var KEY = 'jrt-update:' + APP;
+  // The web copy (GitHub Pages) is always the newest already, and the phone can't run the PC updater.
+  var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if (!local) return;
+
+  var box = document.getElementById('jrt-update'), msg = document.getElementById('jrt-update-msg'),
+      go = document.getElementById('jrt-update-go'), later = document.getElementById('jrt-update-later');
+  function read() { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+  function write(v) { try { v ? sessionStorage.setItem(KEY, JSON.stringify(v)) : sessionStorage.removeItem(KEY); } catch (e) {} }
+  function show(text, busy) {
+    msg.textContent = text; go.disabled = !!busy; go.hidden = false; later.hidden = !!busy;
+    if (box.hidden) { box.hidden = false; box.classList.add('jrt-enter'); requestAnimationFrame(function () { box.classList.remove('jrt-enter'); }); }
+  }
+
+  // After "Update now": the updater replaces the files, and this page reloads until it is the new version.
+  var pending = read();
+  if (pending && pending.target) {
+    if (BUILD >= pending.target) { write(null); show('Updated. Youâ€™re on the newest version.'); go.hidden = true; later.textContent = 'OK'; later.hidden = false; }
+    else if (Date.now() - pending.at < 120000) { show('Updatingâ€¦ this window refreshes by itself.', true); setTimeout(function () { location.reload(); }, 4000); return; }
+    else { write(null); show('The update didnâ€™t finish. Check the update window, or try again.'); }
+  }
+
+  var latest = null;
+  function check() {
+    fetch(VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
+      if (!v || !(v.build > BUILD) || localStorage.getItem(KEY + ':skip') == v.build) return;
+      latest = v;
+      show('A new version is ready' + (v.notes ? ': ' + v.notes : '.'));
+    }).catch(function () { /* offline: try again later */ });
+  }
+  go.onclick = function () {
+    if (!latest) return;
+    write({ target: latest.build, at: Date.now() });
+    show('Updatingâ€¦ this window refreshes by itself.', true);
+    location.href = 'jrtapp://update/' + APP;
+    setTimeout(function () { location.reload(); }, 6000);
+  };
+  later.onclick = function () { if (latest) try { localStorage.setItem(KEY + ':skip', latest.build); } catch (e) {} box.hidden = true; };
+  check();
+  setInterval(check, 6 * 3600 * 1000);
+})();
+</script>
+<!--JRT-UPDATE:END-->
+</body>
+</html>
